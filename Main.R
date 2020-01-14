@@ -2,6 +2,7 @@ rm(list = ls())
 
 # 1. Load data
 data <- read.csv("QCM/QCM12.csv", sep = ";")
+names(data) <- c("P1", "P2", "P3", "P4", "P5", "P6", "P7", "P8", "P9", "P10", "T1", "T2", "T3", "T4", "T5")
 
 # 2. Data exploration
 str(data)
@@ -29,12 +30,9 @@ install.packages("neuralnet")
 library(neuralnet)
 
 # train the model
-data_model <- neuralnet(
-  X1.Octanol+X1.Propanol+X2.Butanol+X2.propanol+X1.isobutanol~X0.799_0.201+X0.799_0.201.1+X0.700_0.300+X0.700_0.300.1+X0.600_0.400+X0.600_0.400.1+X0.501_0.499+X0.501_0.499.1+X0.400_0.600+X0.400_0.600.1,
-  data = data_train,
-  hidden = c(30, 10))
+data_model <- neuralnet(T1+T2+T3+T4+T5~P1+P2+P3+P4+P5+P6+P7+P8+P9+P10, data = data_train, hidden = c(30, 10))
 
-plot(data_model) # yikes
+plot(data_model)
 
 # 6. Prediction (test data)
 model_results <- compute(data_model, data_test[1:10])
