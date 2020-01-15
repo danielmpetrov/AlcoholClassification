@@ -54,14 +54,27 @@ test <- data_norm[-sample,]
 prop.table(table(train$Cat))
 prop.table(table(test$Cat))
 
+# 5. Model creation (training data)
 library(C50)
 model2 <- C5.0(train[-11], train$Cat)
 model2
 summary(model2)
 
+# 6. Prediction (test data)
 predict <- predict(model2, test)
 
+# 7. Model Evaluation
 library(gmodels)
 CrossTable(test$Cat, predict,
            prop.chisq = FALSE, prop.c = FALSE, prop.r = FALSE,
            dnn = c('actual', 'predicted'))
+
+# boost for extra performance
+boost <- C5.0(train[-11], train$Cat, trials = 10)
+boost
+summary(boost)
+
+boost.predict <- predict(boost, test)
+CrossTable(test$Cat, boost.predict,
+           prop.chisq = FALSE, prop.c = FALSE, prop.r = FALSE,
+           dnn = c('actual default', 'predicted default'))
