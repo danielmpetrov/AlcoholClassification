@@ -1,3 +1,6 @@
+install.packages("C50")
+
+
 rm(list = ls())
 
 # 1. Load data
@@ -28,3 +31,37 @@ normalize <- function(x) {
 Cat = apply(data, 1, normalize)
 data_norm <- data.frame(data[1:10], Cat)
 
+head(data_norm)
+
+# 3.5 Train Model (without splitting)
+# achieves 100% accuracy
+library(C50)
+set.seed(123)
+model <- C5.0(data_norm[-11], data_norm$Cat)
+model
+summary(model)
+plot(model) # error???
+
+# 4. Data splitting
+
+rows <- nrow(data_norm)
+sample <- sample(rows, rows * 0.6)
+train <- data_norm[sample,]
+test <- data_norm[-sample,]
+
+# check that ratio of categorisation from one data set
+# to another is valid and all categories are represented
+prop.table(table(train$Cat))
+prop.table(table(test$Cat))
+
+library(C50)
+model2 <- C5.0(train[-11], train$Cat)
+model2
+summary(model2)
+
+predict <- predict(model2, test)
+
+library(gmodels)
+CrossTable(test$Cat, predict,
+           prop.chisq = FALSE, prop.c = FALSE, prop.r = FALSE,
+           dnn = c('actual', 'predicted'))
