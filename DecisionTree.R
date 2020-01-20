@@ -1,5 +1,9 @@
 install.packages("C50")
+install.packages("plyr")
 
+library(C50)
+library(plyr)
+library(gmodels)
 
 rm(list = ls())
 
@@ -31,50 +35,73 @@ normalize <- function(x) {
 Cat = apply(data, 1, normalize)
 data_norm <- data.frame(data[1:10], Cat)
 
+# dummies are converted to factors
 head(data_norm)
 
-# 3.5 Train Model (without splitting)
-# achieves 100% accuracy
-library(C50)
-set.seed(123)
-model <- C5.0(data_norm[-11], data_norm$Cat)
-model
-summary(model)
-plot(model) # error???
+n <- 1000
+outs <- NULL
 
-# 4. Data splitting
+pbar <- create_progress_bar('text')
+pbar$init(n)
 
-rows <- nrow(data_norm)
-sample <- sample(rows, rows * 0.6)
-train <- data_norm[sample,]
-test <- data_norm[-sample,]
+for(i in 1:n){
+  # 4. Data splitting
+  rows <- nrow(data_norm)
+  sample <- sample(rows, rows * 0.5)
+  train <- data_norm[sample,]
+  test <- data_norm[-sample,]
 
-# check that ratio of categorisation from one data set
-# to another is valid and all categories are represented
-prop.table(table(train$Cat))
-prop.table(table(test$Cat))
+  # check that ratio of categorisation from one data set
+  # to another is valid and all categories are represented
+  # prop.table(table(train$Cat))
+  # prop.table(table(test$Cat))
 
-# 5. Model creation (training data)
-library(C50)
-model2 <- C5.0(train[-11], train$Cat)
-model2
-summary(model2)
+  # 5. Model creation (training data)
+  model <- C5.0(train[-11], train$Cat)
+  # model
+  # summary(model)
 
-# 6. Prediction (test data)
-predict <- predict(model2, test)
+  # 6. Prediction (test data)
+  predict <- predict(model, test)
 
-# 7. Model Evaluation
-library(gmodels)
-CrossTable(test$Cat, predict,
-           prop.chisq = FALSE, prop.c = FALSE, prop.r = FALSE,
-           dnn = c('actual', 'predicted'))
+  # 7. Model Evaluation
+  # CrossTable(test$Cat, predict, prop.chisq = FALSE, prop.c = FALSE, prop.r = FALSE, dnn = c('actual', 'predicted'))
+  outs <- mean(predict == test$Cat)
 
-# boost for extra performance
-boost <- C5.0(train[-11], train$Cat, trials = 10)
-boost
-summary(boost)
+  pbar$step()
+}
 
-boost.predict <- predict(boost, test)
-CrossTable(test$Cat, boost.predict,
-           prop.chisq = FALSE, prop.c = FALSE, prop.r = FALSE,
-           dnn = c('actual default', 'predicted default'))
+# average accuracy
+mean(outs)
+
+n <- 1000
+outs <- NULL
+
+pbar <- create_progress_bar('text')
+pbar$init(n)
+
+for(i in 1:n){
+  # 4. Data splitting
+  rows <- nrow(data_norm)
+  sample <- sample(rows, rows * 0.5)
+  train <- data_norm[sample,]
+  test <- data_norm[-sample,]
+
+  # 5. Model creation (training data)
+  # boost for extra performance
+  boost <- C5.0(train[-11], train$Cat, trials = 10)
+  # boost
+  # summary(boost)
+
+  # 6. Prediction (test data)
+  boost.predict <- predict(boost, test)
+
+  # 7. Model Evaluation
+  # CrossTable(test$Cat, boost.predict, prop.chisq = FALSE, prop.c = FALSE, prop.r = FALSE, dnn = c('actual', 'predicted'))
+
+  outs <- mean(predict == test$Cat)
+
+  pbar$step()
+}
+
+mean(outs)
