@@ -1,6 +1,11 @@
 install.packages("neuralnet")
 install.packages("boot")
 
+install.packages("devtools")
+library(devtools)
+devtools::install_github('m-clark/confusionMatrix')
+library(confusionMatrix)
+
 library(boot)
 library(neuralnet)
 library(gmodels)
@@ -28,8 +33,8 @@ head(data_norm)
 
 # Configuration
 number_of_runs <- 5
-training_prop <- 0.8
-hidden_layer_structure <- c(40)
+training_prop <- 0.7
+hidden_layer_structure <- c(60)
 
 outs <- NULL
 
@@ -57,7 +62,18 @@ for(i in 1:number_of_runs){
 
   outs[i] <- mean(predicted_values == original_values)
 
-  # CrossTable(original_values, predicted_values, prop.chisq = FALSE, prop.r = FALSE, prop.c=FALSE, dnn = c("actual","predicted"))
+  CrossTable(original_values, predicted_values, prop.chisq = FALSE, prop.r = FALSE, prop.c=FALSE, dnn = c("actual","predicted"))
+  t <- confusion_matrix(predicted_values, original_values, return_table = TRUE)
+  print(t$Accuracy$Accuracy)
+  f <- data.frame(
+    t$Other$Class,
+    t$Other$`Balanced Accuracy`,
+    t$Other$`PPV/Precision`,
+    t$Other$`Sensitivity/Recall/TPR`,
+    t$Other$`FPR/Fallout`,
+    t$Other$FNR)
+  names(f) <- c('Class', 'Accuracy', 'Precision', 'Recall', 'FAR', 'FRR')
+  print(f)
 }
 
 # accuracies
