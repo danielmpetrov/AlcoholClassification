@@ -1,14 +1,12 @@
 install.packages("C50")
-install.packages("plyr")
 
 library(C50)
-library(plyr)
 library(gmodels)
 
 rm(list = ls())
 
 # 1. Load data
-data <- read.csv("QCM/QCM12.csv", sep = ";")
+data <- read.csv("QCM/all.csv", sep = ";")
 names(data) <- c("P1", "P2", "P3", "P4", "P5", "P6", "P7", "P8", "P9", "P10", "T1", "T2", "T3", "T4", "T5")
 
 # 2. Data exploration
@@ -38,16 +36,17 @@ data_norm <- data.frame(data[1:10], Cat)
 # dummies are converted to factors
 head(data_norm)
 
-n <- 1000
+# Configuration
+number_of_runs <- 5
+training_prop <- 0.8
+boost_trials <- 20
+
 outs <- NULL
 
-pbar <- create_progress_bar('text')
-pbar$init(n)
-
-for(i in 1:n){
+for(i in 1:number_of_runs){
   # 4. Data splitting
   rows <- nrow(data_norm)
-  sample <- sample(rows, rows * 0.5)
+  sample <- sample(rows, rows * training_prop)
   train <- data_norm[sample,]
   test <- data_norm[-sample,]
 
@@ -67,29 +66,26 @@ for(i in 1:n){
   # 7. Model Evaluation
   # CrossTable(test$Cat, predict, prop.chisq = FALSE, prop.c = FALSE, prop.r = FALSE, dnn = c('actual', 'predicted'))
   outs <- mean(predict == test$Cat)
-
-  pbar$step()
 }
 
+# accuracies
+outs
 # average accuracy
 mean(outs)
 
-n <- 1000
+# Repeat the same, but with boosting
 outs <- NULL
 
-pbar <- create_progress_bar('text')
-pbar$init(n)
-
-for(i in 1:n){
+for(i in 1:number_of_runs){
   # 4. Data splitting
   rows <- nrow(data_norm)
-  sample <- sample(rows, rows * 0.5)
+  sample <- sample(rows, rows * training_prop)
   train <- data_norm[sample,]
   test <- data_norm[-sample,]
 
   # 5. Model creation (training data)
   # boost for extra performance
-  boost <- C5.0(train[-11], train$Cat, trials = 10)
+  boost <- C5.0(train[-11], train$Cat, trials = boost_trials)
   # boost
   # summary(boost)
 
@@ -99,9 +95,11 @@ for(i in 1:n){
   # 7. Model Evaluation
   # CrossTable(test$Cat, boost.predict, prop.chisq = FALSE, prop.c = FALSE, prop.r = FALSE, dnn = c('actual', 'predicted'))
 
-  outs <- mean(predict == test$Cat)
-
-  pbar$step()
+  outs <- mean(boost.predict == test$Cat)
 }
 
+
+# accuracies
+outs
+# average accuracy
 mean(outs)
