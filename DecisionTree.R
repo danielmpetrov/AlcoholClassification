@@ -1,4 +1,10 @@
 install.packages("C50")
+install.packages("gmodels")
+
+install.packages("devtools")
+library(devtools)
+devtools::install_github('m-clark/confusionMatrix')
+library(confusionMatrix)
 
 library(C50)
 library(gmodels)
@@ -38,10 +44,8 @@ head(data_norm)
 
 # Configuration
 number_of_runs <- 5
-training_prop <- 0.8
-boost_trials <- 20
-
-outs <- NULL
+training_prop <- 0.7
+boost_trials <- 10
 
 for(i in 1:number_of_runs){
   # 4. Data splitting
@@ -64,17 +68,21 @@ for(i in 1:number_of_runs){
   predict <- predict(model, test)
 
   # 7. Model Evaluation
-  # CrossTable(test$Cat, predict, prop.chisq = FALSE, prop.c = FALSE, prop.r = FALSE, dnn = c('actual', 'predicted'))
-  outs <- mean(predict == test$Cat)
+  CrossTable(test$Cat, predict, prop.chisq = FALSE, prop.c = FALSE, prop.r = FALSE, dnn = c('actual', 'predicted'))
+  t <- confusion_matrix(predict, test$Cat, return_table = TRUE)
+  f <- data.frame(
+    t$Other$Class,
+    t$Other$`Balanced Accuracy`,
+    t$Other$`PPV/Precision`,
+    t$Other$`Sensitivity/Recall/TPR`,
+    t$Other$`FPR/Fallout`,
+    t$Other$FNR)
+  names(f) <- c('Class', 'Accuracy', 'Precision', 'Recall', 'FAR', 'FRR')
+  print(f)
 }
 
-# accuracies
-outs
-# average accuracy
-mean(outs)
-
 # Repeat the same, but with boosting
-outs <- NULL
+# boosting seems to not help this model
 
 for(i in 1:number_of_runs){
   # 4. Data splitting
@@ -93,13 +101,15 @@ for(i in 1:number_of_runs){
   boost.predict <- predict(boost, test)
 
   # 7. Model Evaluation
-  # CrossTable(test$Cat, boost.predict, prop.chisq = FALSE, prop.c = FALSE, prop.r = FALSE, dnn = c('actual', 'predicted'))
-
-  outs <- mean(boost.predict == test$Cat)
+  CrossTable(test$Cat, boost.predict, prop.chisq = FALSE, prop.c = FALSE, prop.r = FALSE, dnn = c('actual', 'predicted'))
+  t <- confusion_matrix(boost.predict, test$Cat, return_table = TRUE)
+  f <- data.frame(
+    t$Other$Class,
+    t$Other$`Balanced Accuracy`,
+    t$Other$`PPV/Precision`,
+    t$Other$`Sensitivity/Recall/TPR`,
+    t$Other$`FPR/Fallout`,
+    t$Other$FNR)
+  names(f) <- c('Class', 'Accuracy', 'Precision', 'Recall', 'FAR', 'FRR')
+  print(f)
 }
-
-
-# accuracies
-outs
-# average accuracy
-mean(outs)

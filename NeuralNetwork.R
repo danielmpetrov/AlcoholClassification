@@ -1,5 +1,6 @@
 install.packages("neuralnet")
 install.packages("boot")
+install.packages("gmodels")
 
 install.packages("devtools")
 library(devtools)
