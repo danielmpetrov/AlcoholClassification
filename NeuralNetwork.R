@@ -33,10 +33,10 @@ head(data_norm)
 
 # Configuration
 number_of_runs <- 5
-training_prop <- 0.7
-hidden_layer_structure <- c(60)
+training_prop <- 0.8
+hidden_layer_structure <- c(20, 10)
 
-outs <- NULL
+ptm <- proc.time()
 
 for(i in 1:number_of_runs){
   # 4. Data splitting
@@ -60,8 +60,6 @@ for(i in 1:number_of_runs){
   original_values <- max.col(data_test[, 11:15])
   predicted_values <- max.col(predicted_alcohol)
 
-  outs[i] <- mean(predicted_values == original_values)
-
   CrossTable(original_values, predicted_values, prop.chisq = FALSE, prop.r = FALSE, prop.c=FALSE, dnn = c("actual","predicted"))
   t <- confusion_matrix(predicted_values, original_values, return_table = TRUE)
   print(t$Accuracy$Accuracy)
@@ -76,7 +74,5 @@ for(i in 1:number_of_runs){
   print(f)
 }
 
-# accuracies
-outs
-# average accuracy
-mean(outs)
+time <- proc.time() - ptm
+print(time)
