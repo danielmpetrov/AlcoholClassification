@@ -34,8 +34,8 @@ head(data_norm)
 
 # Configuration
 number_of_runs <- 5
-training_prop <- 0.8
-hidden_layer_structure <- c(20, 10)
+training_prop <- 0.7
+hidden_layer_structure <- c(100, 50, 25)
 
 ptm <- proc.time()
 
@@ -63,7 +63,6 @@ for(i in 1:number_of_runs){
 
   CrossTable(original_values, predicted_values, prop.chisq = FALSE, prop.r = FALSE, prop.c=FALSE, dnn = c("actual","predicted"))
   t <- confusion_matrix(predicted_values, original_values, return_table = TRUE)
-  print(t$Accuracy$Accuracy)
   f <- data.frame(
     t$Other$Class,
     t$Other$`Balanced Accuracy`,
