@@ -43,21 +43,24 @@ data_norm <- data.frame(data[1:10], Cat)
 head(data_norm)
 
 # Configuration
-number_of_runs <- 5
-training_prop <- 0.7
-boost_trials <- 10
+training_prop <- 0.6
 
-for(i in 1:number_of_runs){
+n <- 0
+while(n < 5){
   # 4. Data splitting
   rows <- nrow(data_norm)
   sample <- sample(rows, rows * training_prop)
   train <- data_norm[sample,]
   test <- data_norm[-sample,]
 
-  # check that ratio of categorisation from one data set
-  # to another is valid and all categories are represented
-  # prop.table(table(train$Cat))
-  # prop.table(table(test$Cat))
+  # consider only splits that have all 5 factors in the testing and training data
+  if(length(unique(test$Cat)) < 5){
+    next
+  }
+
+  if(length(unique(train$Cat)) < 5){
+    next
+  }
 
   # 5. Model creation (training data)
   model <- C5.0(train[-11], train$Cat)
@@ -79,37 +82,6 @@ for(i in 1:number_of_runs){
     t$Other$FNR)
   names(f) <- c('Class', 'Accuracy', 'Precision', 'Recall', 'FAR', 'FRR')
   print(f)
-}
 
-# Repeat the same, but with boosting
-# boosting seems to not help this model
-
-for(i in 1:number_of_runs){
-  # 4. Data splitting
-  rows <- nrow(data_norm)
-  sample <- sample(rows, rows * training_prop)
-  train <- data_norm[sample,]
-  test <- data_norm[-sample,]
-
-  # 5. Model creation (training data)
-  # boost for extra performance
-  boost <- C5.0(train[-11], train$Cat, trials = boost_trials)
-  # boost
-  # summary(boost)
-
-  # 6. Prediction (test data)
-  boost.predict <- predict(boost, test)
-
-  # 7. Model Evaluation
-  CrossTable(test$Cat, boost.predict, prop.chisq = FALSE, prop.c = FALSE, prop.r = FALSE, dnn = c('actual', 'predicted'))
-  t <- confusion_matrix(boost.predict, test$Cat, return_table = TRUE)
-  f <- data.frame(
-    t$Other$Class,
-    t$Other$`Balanced Accuracy`,
-    t$Other$`PPV/Precision`,
-    t$Other$`Sensitivity/Recall/TPR`,
-    t$Other$`FPR/Fallout`,
-    t$Other$FNR)
-  names(f) <- c('Class', 'Accuracy', 'Precision', 'Recall', 'FAR', 'FRR')
-  print(f)
+  n = n + 1
 }
