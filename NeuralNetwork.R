@@ -14,7 +14,12 @@ library(gmodels)
 rm(list = ls())
 
 # 1. Load data
-data <- read.csv("QCM/all.csv", sep = ";")
+qcm3 <- read.csv("QCM/QCM3.csv", sep = ";")
+qcm6 <- read.csv("QCM/QCM6.csv", sep = ";")
+qcm7 <- read.csv("QCM/QCM7.csv", sep = ";")
+qcm10 <- read.csv("QCM/QCM10.csv", sep = ";")
+qcm12 <- read.csv("QCM/QCM12.csv", sep = ";")
+data <- rbind(qcm3, qcm6, qcm7, qcm10, qcm12)
 names(data) <- c("P1", "P2", "P3", "P4", "P5", "P6", "P7", "P8", "P9", "P10", "T1", "T2", "T3", "T4", "T5")
 
 # 2. Data exploration
@@ -76,3 +81,11 @@ for(i in 1:number_of_runs){
 
 time <- proc.time() - ptm
 print(time)
+
+plot(data_model,
+     radius = 0.1,
+     show.weights = FALSE,
+     intercept = FALSE,
+     information = TRUE,
+     arrow.length = 0.1,
+     col.hidden = "red")
